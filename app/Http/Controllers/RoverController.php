@@ -8,7 +8,8 @@ class RoverController extends Controller
 {
     public function play(Request $request){
         // $mov_err = false;
-        $or_err = false;
+        $in_bounds = true;
+        $data_err = false;
         $json = $request->json()->all(); // ample(X), llarg(Y), x inicial, y inicial, orientació inicial, llista de moviments (AAALAALAAARAALAAAARA)
         // dd($json);
         // echo $json['width'].'<br>';
@@ -17,18 +18,19 @@ class RoverController extends Controller
         //     echo 'Width must be greater than 0';
         // }
         foreach($json['movement'] as $movement){
-            if($json['yini']>=$json['height'] || $json['xini']>=$json['width'] || $json['yini']<=0 || $json['xini']<=0){
+            if($json['yini']>=$json['height']-1 || $json['xini']>=$json['width']-1 || $json['yini']<=0 || $json['xini']<=0){
                 echo 'Rover went out of bounds from position  '.$json['xini'].', '.$json['yini'].'<br>';
+                $in_bounds = false;
                 break;
             }
             if($movement!='A' && $movement!='R' && $movement!='L'){
-                echo 'Movements restricted to: A (advance), R (turn right), L (turn left)<br>';
-                // $mov_err = true;
+                echo 'Movements restricted to: A (advance), R (turn right), L (turn left)<br>Rover did not move<br>';
+                $data_err = true;
                 break;
             }
             if($json['oini'] != 1 && $json['oini'] != 2 && $json['oini'] != 3 && $json['oini'] != 4){
                 echo 'Orientation restricted to: 1 (North), 2 (East), 3 (South), 4 (West)<br>Rover did not move<br>';
-                $or_err = true;
+                $data_err = true;
                 break;
             }
             switch($movement){
@@ -67,10 +69,22 @@ class RoverController extends Controller
                 //     echo 'Movements restricted to: A (advance), R (turn right), L (turn left)';
             }
         }
-        if ($or_err){
-            return 'Final Rover position is: <br> X = '.$json['xini'].'<br> Y = '.$json['yini'];
-        }else{
-            return 'Final Rover position is: <br> X = '.$json['xini'].'<br> Y = '.$json['yini'].'<br> Orientation = '.$json['oini'];
+        // if ($or_err){
+        //     return 'Final Rover position is: <br> X = '.$json['xini'].'<br> Y = '.$json['yini'];
+        // }else{
+        //     return 'Final Rover position is: <br> X = '.$json['xini'].'<br> Y = '.$json['yini'].'<br> Orientation = '.$json['oini'];
+        // }
+        if($in_bounds && !$data_err){
+            // dd($in_bounds);
+            // return [$in_bounds];
+            $arr=[$in_bounds, $json['xini'], $json['yini'], $json['oini']];
+            return response()->json($arr);
+            // return[$in_bounds, $json['xini'], $json['yini'], $json['oini']];
+        }elseif(!$data_err){
+            // echo [$in_bounds];
+            // dd($in_bounds);
+            // return [$in_bounds];
+            return response()->json($in_bounds);
         }
     }
 }
