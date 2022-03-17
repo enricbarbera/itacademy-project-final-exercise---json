@@ -18,11 +18,11 @@ class RoverController extends Controller
         //     echo 'Width must be greater than 0';
         // }
         foreach($json['movement'] as $movement){
-            if($json['yini']>=$json['height']-1 || $json['xini']>=$json['width']-1 || $json['yini']<=0 || $json['xini']<=0){
-                echo 'Rover went out of bounds from position  '.$json['xini'].', '.$json['yini'].'<br>';
-                $in_bounds = false;
-                break;
-            }
+            // if($json['yini']>=$json['height']-1 || $json['xini']>=$json['width']-1 || $json['yini']<=0 || $json['xini']<=0){
+            //     echo 'Rover went out of bounds from position  '.$json['xini'].', '.$json['yini'].'<br>';
+            //     $in_bounds = false;
+            //     break;
+            // }
             if($movement!='A' && $movement!='R' && $movement!='L'){
                 echo 'Movements restricted to: A (advance), R (turn right), L (turn left)<br>Rover did not move<br>';
                 $data_err = true;
@@ -35,35 +35,53 @@ class RoverController extends Controller
             }
             switch($movement){
                 case 'A':
-                    switch($json['oini']){
-                        case 1:
-                            $json['yini']++;
-                            break;
-                        case 2:
-                            $json['xini']++;
-                            break;
-                        case 3:
-                            $json['yini']--;
-                            break;
-                        case 4:
-                            $json['xini']--;
-                            break;
-                        // default:
-                        //     echo 'Orientation restricted to: 1 (North), 2 (East), 3 (South), 4 (West)';
-                        //     break;
+                    if($json['yini']==$json['height']-1 || $json['xini']==$json['width']-1 || $json['yini']==0 || $json['xini']==0){
+                        echo 'Rover went out of bounds from position  '.$json['xini'].', '.$json['yini'].'<br>';
+                        $in_bounds = false;
+                        break;
+                    }else{
+                        switch($json['oini']){
+                            case 1:
+                                $json['yini']++;
+                                break;
+                            case 2:
+                                $json['xini']++;
+                                break;
+                            case 3:
+                                $json['yini']--;
+                                break;
+                            case 4:
+                                $json['xini']--;
+                                break;
+                            // default:
+                            //     echo 'Orientation restricted to: 1 (North), 2 (East), 3 (South), 4 (West)';
+                            //     break;
+                        }
                     }
                     break;
                 case 'R':
-                    $json['oini']++;
-                    if ($json['oini']==5){
-                        $json['oini']=1;
-                    }
+                    // if($json['yini']==$json['height'] || $json['xini']==$json['width'] || $json['yini']==0 || $json['xini']==0){
+                    //     echo 'Rover went out of bounds from position  '.$json['xini'].', '.$json['yini'].'<br>';
+                    //     $in_bounds = false;
+                    //     break;
+                    // }else{
+                        $json['oini']++;
+                        if ($json['oini']==5){
+                            $json['oini']=1;
+                        }
+                    // }
                     break;
                 case 'L':
-                    $json['oini']--;
-                    if ($json['oini']==0){
-                        $json['oini']=4;
-                    }
+                    // if($json['yini']>=$json['height'] || $json['xini']>=$json['width'] || $json['yini']<0 || $json['xini']<0){
+                    //     echo 'Rover went out of bounds from position  '.$json['xini'].', '.$json['yini'].'<br>';
+                    //     $in_bounds = false;
+                    //     break;
+                    // }else{
+                        $json['oini']--;
+                        if ($json['oini']==0){
+                            $json['oini']=4;
+                        }
+                    // }
                     break;
                 // default:
                 //     echo 'Movements restricted to: A (advance), R (turn right), L (turn left)';
