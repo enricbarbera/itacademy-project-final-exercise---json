@@ -12,6 +12,8 @@ class RoverController extends Controller
         $pos_err = false;
         $data_err = false;
         $json = $request->json()->all(); // ample(X), llarg(Y), x inicial, y inicial, orientació inicial, llista de moviments (ex. AAALAALAAARAALAAAARA)
+        // dd($request);
+        // dd($json);
         $xPosition = $json['rover']['initialPosition']['x'];
         $yPosition = $json['rover']['initialPosition']['y'];
         $initialOrientation = $json['rover']['initialOrientation'];
@@ -34,7 +36,6 @@ class RoverController extends Controller
         $width = $json['square']['width'];
         $height = $json['square']['height'];
         // return "$xPosition, $yPosition, $orientation, $width, $height";
-        // dd($json);
         if($width <= 0 || $height <= 0){
             echo 'Dimensions must be both greater than 0<br>';
             $dim_err = true;
@@ -43,17 +44,16 @@ class RoverController extends Controller
             echo "Rover must be inside square ($width x $height) <br>";
             $pos_err = true;
         }
+        if(!$dim_err && !$pos_err && $orientation != '1' && $orientation != '2' && $orientation != '3' && $orientation != '4'){
+            echo 'Orientation restricted to: N (North), E (East), S (South), W (West)<br>Rover did not move<br>';
+            $data_err = true;
+        }
         foreach($json['movement'] as $movement){
-            if(!$in_bounds || $dim_err || $pos_err){
+            if(!$in_bounds || $dim_err || $pos_err || $data_err){
                 break;
             }
             if($movement!='A' && $movement!='R' && $movement!='L'){
                 echo 'Movements restricted to: A (advance), R (turn right), L (turn left)<br>Rover did not move<br>';
-                $data_err = true;
-                break;
-            }
-            if($orientation != '1' && $orientation != '2' && $orientation != '3' && $orientation != '4'){
-                echo 'Orientation restricted to: N (North), E (East), S (South), W (West)<br>Rover did not move<br>';
                 $data_err = true;
                 break;
             }
