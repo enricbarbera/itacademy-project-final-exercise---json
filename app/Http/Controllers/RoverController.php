@@ -8,16 +8,43 @@ class RoverController extends Controller
 {
     public function play(Request $request){
         $in_bounds = true;
+        $dim_err = false;
+        $pos_err = false;
         $data_err = false;
         $json = $request->json()->all(); // ample(X), llarg(Y), x inicial, y inicial, orientació inicial, llista de moviments (ex. AAALAALAAARAALAAAARA)
+        $xPosition = $json['rover']['initialPosition']['x'];
+        $yPosition = $json['rover']['initialPosition']['y'];
+        $initialOrientation = $json['rover']['initialOrientation'];
+        Switch($initialOrientation){
+            case 'N':
+                $orientation = 1;
+                break;
+            case 'E':
+                $orientation = 2;
+                break;
+            case 'S':
+                $orientation = 3;
+                break;
+            case 'W':
+                $orientation = 4;
+                break;
+            default:
+                $orientation = 0;
+        }
+        $width = $json['square']['width'];
+        $height = $json['square']['height'];
+        // return "$xPosition, $yPosition, $orientation, $width, $height";
         // dd($json);
-        // echo $json['width'].'<br>';
-        // echo $json['oini'].'<br>';
-        // if($json['width']<=0){
-        //     echo 'Width must be greater than 0';
-        // }
+        if($width <= 0 || $height <= 0){
+            echo 'Dimensions must be both greater than 0<br>';
+            $dim_err = true;
+        }
+        if(!$dim_err && ($xPosition < 0 || $xPosition >= $width-1 || $yPosition < 0 || $yPosition >= $height-1)){
+            echo "Rover must be inside square ($width x $height) <br>";
+            $pos_err = true;
+        }
         foreach($json['movement'] as $movement){
-            if(!$in_bounds){
+            if(!$in_bounds || $dim_err || $pos_err){
                 break;
             }
             if($movement!='A' && $movement!='R' && $movement!='L'){
@@ -25,64 +52,67 @@ class RoverController extends Controller
                 $data_err = true;
                 break;
             }
-            if($json['oini'] != 1 && $json['oini'] != 2 && $json['oini'] != 3 && $json['oini'] != 4){
-                echo 'Orientation restricted to: 1 (North), 2 (East), 3 (South), 4 (West)<br>Rover did not move<br>';
+            if($orientation != '1' && $orientation != '2' && $orientation != '3' && $orientation != '4'){
+                echo 'Orientation restricted to: N (North), E (East), S (South), W (West)<br>Rover did not move<br>';
                 $data_err = true;
                 break;
             }
             switch($movement){
                 case 'A':
-                    if($json['oini']==1 && $json['yini']==$json['height']-1 || $json['oini']==2 && $json['xini']==$json['width']-1 || $json['oini']==3 && $json['yini']==0 || $json['oini']==4 && $json['xini']==0){
-                        echo 'Rover went out of bounds from position  '.$json['xini'].', '.$json['yini'].'<br>';
+                    if($orientation == 1 && $yPosition == $height-1 || $orientation == 2 && $xPosition == $width-1 || $orientation == 3 && $yPosition == 0 || $orientation == 4 && $xPosition == 0){
+                        echo 'Rover went out of bounds from position  '.$xPosition.', '.$yPosition.'<br>';
                         $in_bounds = false;
                         break;
                     }else{
-                        switch($json['oini']){
+                        switch($orientation){
                             case 1:
-                                $json['yini']++;
+                                $yPosition++;
                                 break;
                             case 2:
-                                $json['xini']++;
+                                $xPosition++;
                                 break;
                             case 3:
-                                $json['yini']--;
+                                $yPosition--;
                                 break;
                             case 4:
-                                $json['xini']--;
+                                $xPosition--;
                                 break;
                         }
                     }
                     break;
                 case 'R':
-                        $json['oini']++;
-                        if ($json['oini']==5){
-                            $json['oini']=1;
-                        }
+                    $orientation++;
+                    if ($orientation == 5){
+                        $orientation = 1;
+                    }
                     break;
                 case 'L':
-                        $json['oini']--;
-                        if ($json['oini']==0){
-                            $json['oini']=4;
-                        }
+                    $orientation--;
+                    if ($orientation == 0){
+                        $orientation = 4;
+                    }
                     break;
             }
         }
-        // if ($or_err){
-        //     return 'Final Rover position is: <br> X = '.$json['xini'].'<br> Y = '.$json['yini'];
-        // }else{
-        //     return 'Final Rover position is: <br> X = '.$json['xini'].'<br> Y = '.$json['yini'].'<br> Orientation = '.$json['oini'];
-        // }
-        if($in_bounds && !$data_err){
-            // dd($in_bounds);
-            // return [$in_bounds];
-            echo 'Final Rover position is: <br> X = '.$json['xini'].'<br> Y = '.$json['yini'].'<br> Orientation = '.$json['oini'].'<br>';
-            $arr=[$in_bounds, $json['xini'], $json['yini'], $json['oini']];
+        if($in_bounds && !$data_err && !$dim_err && !$pos_err){
+            Switch ($orientation){
+                case 1:
+                    $finalOrientation = 'N';
+                    break;
+                case 2:
+                    $finalOrientation = 'E';
+                    break;
+                case 3:
+                    $finalOrientation = 'S';
+                    break;
+                case 4:
+                    $finalOrientation = 'W';
+                    break;
+            }
+            echo 'Final Rover position is: <br> X = '.$xPosition.'<br> Y = '.$yPosition.'<br> Orientation = '.$finalOrientation.'<br>';
+            $arr=[$in_bounds, $xPosition, $yPosition, $finalOrientation];
             return response()->json($arr);
-            // return[$in_bounds, $json['xini'], $json['yini'], $json['oini']];
-        }elseif(!$data_err){
-            // echo [$in_bounds];
-            // dd($in_bounds);
-            // return [$in_bounds];
+        }elseif(!$data_err && !$dim_err && !$pos_err){
             return response()->json($in_bounds);
         }
     }
