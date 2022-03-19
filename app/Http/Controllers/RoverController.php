@@ -17,7 +17,7 @@ class RoverController extends Controller
         $xPosition = $json['rover']['initialPosition']['x'];
         $yPosition = $json['rover']['initialPosition']['y'];
         $initialOrientation = $json['rover']['initialOrientation'];
-        Switch($initialOrientation){
+        Switch(strtoupper($initialOrientation)){
             case 'N':
                 $orientation = 1;
                 break;
