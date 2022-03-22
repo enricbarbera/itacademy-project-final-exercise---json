@@ -52,7 +52,7 @@ class RoverController extends Controller
             if(!$in_bounds || $dim_err || $pos_err || $data_err){
                 break;
             }
-            if($movement!='A' && $movement!='R' && $movement!='L'){
+            if(strtoupper($movement)!='A' && strtoupper($movement)!='R' && strtoupper($movement)!='L'){
                 echo 'Movements restricted to: A (advance), R (turn right), L (turn left)<br>Rover did not move<br>';
                 $data_err = true;
                 break;
